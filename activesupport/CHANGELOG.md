@@ -1,3 +1,15 @@
+*   `travel/travel_to` travel time helpers, now support nested calls,  
+     and restore properly to time state for respective blocks.  
+
+        travel_to outer_expected_time do
+          travel_to inner_expected_time do
+            #will work with inner_expected_time as time values
+            end
+          #will work with outer_expected_time as time values
+        end
+
+    *Vipul A M*
+    
 *   `ActiveSupport::TimeZone.country_zones(country_code)` looks up the
     country's time zones by its two-letter ISO3166 country code, e.g.
 
