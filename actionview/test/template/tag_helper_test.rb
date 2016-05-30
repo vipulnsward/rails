@@ -6,9 +6,11 @@ class TagHelperTest < ActionView::TestCase
   tests ActionView::Helpers::TagHelper
 
   def test_tag
+    assert_equal "<br />", tag.br
     assert_equal "<br />", tag("br")
-    assert_equal "<br clear=\"left\" />", tag(:br, :clear => "left")
-    assert_equal "<br>", tag("br", nil, true)
+    assert_equal "<br clear=\"left\" />", tag.br(clear: "left")
+    assert_equal "<br clear=\"left\" />", tag("br", clear: "left")
+    assert_equal "<br>", tag.br(nil, true)
   end
 
   def test_tag_options

@@ -72,8 +72,67 @@ module ActionView
       #
       #   tag("div", data: {name: 'Stephen', city_state: %w(Chicago IL)})
       #   # => <div data-name="Stephen" data-city-state="[&quot;Chicago&quot;,&quot;IL&quot;]" />
-      def tag(name, options = nil, open = false, escape = true)
-        "<#{name}#{tag_options(options, escape) if options}#{open ? ">" : " />"}".html_safe
+      def tag(*args)
+        @_tag_builder ||= TagBuilder.new
+        if args.any?
+          meth = args.shift
+          @_tag_builder.public_send meth, *args
+        else
+          @_tag_builder
+        end
+      end
+
+      SELF_CLOSING_TAGS = %i{area base br col command embed hr img input keygen link meta param source track wbr}
+
+      class TagBuilder
+        def method_missing(tag_name, options = nil, open= false, escape = true) # :nodoc:
+          "<#{tag_name}#{tag_options(options, escape) if options}#{open ? ">" : " />"}".html_safe
+        end
+
+        def tag_options(options, escape = true)
+          return if options.blank?
+          output = ""
+          sep    = " ".freeze
+          options.each_pair do |key, value|
+            if TAG_PREFIXES.include?(key) && value.is_a?(Hash)
+              value.each_pair do |k, v|
+                next if v.nil?
+                output << sep
+                output << prefix_tag_option(key, k, v, escape)
+              end
+            elsif BOOLEAN_ATTRIBUTES.include?(key)
+              if value
+                output << sep
+                output << boolean_tag_option(key)
+              end
+            elsif !value.nil?
+              output << sep
+              output << tag_option(key, value, escape)
+            end
+          end
+          output unless output.empty?
+        end
+
+        def prefix_tag_option(prefix, key, value, escape)
+          key = "#{prefix}-#{key.to_s.dasherize}"
+          unless value.is_a?(String) || value.is_a?(Symbol) || value.is_a?(BigDecimal)
+            value = value.to_json
+          end
+          tag_option(key, value, escape)
+        end
+
+        def boolean_tag_option(key)
+          %(#{key}="#{key}")
+        end
+
+        def tag_option(key, value, escape)
+          if value.is_a?(Array)
+            value = escape ? safe_join(value, " ".freeze) : value.join(" ".freeze)
+          else
+            value = escape ? ERB::Util.unwrapped_html_escape(value) : value
+          end
+          %(#{key}="#{value}")
+        end
       end
 
       # Returns an HTML block tag of type +name+ surrounding the +content+. Add
