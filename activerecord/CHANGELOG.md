@@ -1,3 +1,27 @@
+*   `create_`, `create_!` and `build_` methods are now available for both `SingularAssociation` and `CollectionAssociation`.
+
+    This allows us to now make use of `create_`, `create_!` and `build_` methods on `has_many` associations as following:
+
+    ```ruby
+
+    class User < ActiveRecord::Base
+        has_many :posts
+    end
+
+    user = User.first
+    
+    # Building
+    post = user.build_post(title: "New Post")
+    post.save!
+
+    # Creating
+    user.create_post!(title: "New Post")
+    user.create_post(title: "New Post")
+    ```
+
+    *Keshav Biswa*, *Vipul A M*
+
+
 *   YAML columns use `YAML.safe_dump` is available.
 
     As of `psych 5.1.0`, `YAML.safe_dump` can now apply the same permitted
